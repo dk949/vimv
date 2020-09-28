@@ -1,4 +1,4 @@
-# vimv
+# vimv (Fork of https://github.com/thameera/vimv)
 
 vimv is a terminal-based file rename utility that lets you easily mass-rename files using Vim.
 
@@ -24,10 +24,10 @@ Or simply copy the `vimv` file to a location in your `$PATH` and make it executa
 * If you are inside a Git directory, vimv will use `git mv` (instead of `mv`) to rename the files.
 * You can use `/some/path/filename` format to move the file elsewhere during renaming. If the path is non-existent, it will be automatically created before moving.
 
-## Screencast
-
-![alt text](screencast.gif "vimv in action")
-
 ## Gotchas
 
 Don't delete or swap the lines while in Vim or things will get ugly.
+
+## Differences between this and the original
+* Being able to rename hidden files with -a
+* Added an install script, which coppies the file to ~/bin

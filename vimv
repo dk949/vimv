@@ -2,7 +2,15 @@
 
 # Lists the current directory's files in Vim, so you can edit it and save to rename them
 # USAGE: vimv [file1 file2]
-# https://github.com/thameera/vimv
+# If -a is passed as the first argument, hidden files become visible
+# https://github.com/dk949/vimv
+
+if [ "$1" = "-a" ]; then
+    LS_FLAGS="-A"
+    shift
+else
+    LS_FLAGS=
+fi
 
 declare -r FILENAMES_FILE="$(mktemp --tmpdir vimv.XXX)"
 
@@ -11,7 +19,7 @@ trap '{ rm -f "${FILENAMES_FILE}" ; }' EXIT
 if [ $# -ne 0 ]; then
     src=( "$@" )
 else
-    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(ls))'
+    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(ls $LS_FLAGS))'
 fi
 
 for ((i=0;i<${#src[@]};++i)); do
