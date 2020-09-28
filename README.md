@@ -1,4 +1,5 @@
-# vimv (Fork of https://github.com/thameera/vimv)
+# vimv
+(Fork of https://github.com/thameera/vimv)
 
 vimv is a terminal-based file rename utility that lets you easily mass-rename files using Vim.
 
