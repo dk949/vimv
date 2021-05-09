@@ -6,7 +6,7 @@ set -eu
 # If -a is passed as the first argument, hidden files become visible
 # https://github.com/dk949/vimv
 
-if [ "$1" = "-a" ]; then
+if [ "${1-""}" = "-a" ]; then
     LS_FLAGS="-A"
     shift
 else
@@ -20,7 +20,7 @@ trap '{ rm -f "${FILENAMES_FILE}" ; }' EXIT
 if [ $# -ne 0 ]; then
     src=( "$@" )
 else
-    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(ls $LS_FLAGS))'
+    IFS=$'\r\n' GLOBIGNORE='*' command eval  "src=($(ls $LS_FLAGS))"
 fi
 
 for ((i=0;i<${#src[@]};++i)); do
