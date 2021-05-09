@@ -5,7 +5,7 @@ vimv is a terminal-based file rename utility that lets you easily mass-rename fi
 
 ## Installing
 
-Run the ncluded install script.
+Run the included install script.
 Or just copy the `vimv` file to a location in your `$PATH` and make it executable.
 
 ## Usage
