@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -eu
+
+# Lists the current directory's files in Vim, so you can edit it and save to rename them
+# USAGE: vimv [file1 file2]
+# If -a is passed as the first argument, hidden files become visible
+# https://github.com/dk949/vimv
+
+if [ "${1-""}" = "-a" ]; then
+    LS_FLAGS="-A"
+    shift
+else
+    LS_FLAGS=
+fi
+
+declare -r FILENAMES_FILE=$(mktemp "${TMPDIR:-/tmp}/vimv.XXX")
+
+trap '{ rm -f "${FILENAMES_FILE}" ; }' EXIT
+
+if [ $# -ne 0 ]; then
+    src=( "$@" )
+else
+    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(ls $LS_FLAGS))'
+fi
+
+for ((i=0;i<${#src[@]};++i)); do
+    echo "${src[i]}" >> "${FILENAMES_FILE}"
+done
+
+${EDITOR:-vi} "${FILENAMES_FILE}"
+
+IFS=$'\r\n' GLOBIGNORE='*' command eval 'dest=($(cat "${FILENAMES_FILE}"))'
+
+declare -a actions=()
+
+declare -i count=0
+
+for ((i=0;i<${#src[@]};++i)); do
+    if ! printf %s "${dest[@]}" | grep -Pq "${src[i]}"; then
+
+        if git ls-files --error-unmatch "${src[i]}" > /dev/null 2>&1; then
+            actions+=("git rm ${src[i]}")
+        else
+            actions+=("rm ${src[i]}")
+        fi
+        ((++count))
+    fi
+done
+
+
+if (( ${#actions[@]} != ${#src[@]} - ${#dest[@]})); then
+    echo "WARN: Number of changed files did not match number of deleted files. Did you modify a line without deleting it by accident? Aborting.." >&2
+    exit 1
+fi
+
+
+for i in "${actions[@]}"; do
+    eval "$i"
+done
+
+
+echo "$count file(s) removed."
