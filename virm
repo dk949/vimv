@@ -1,26 +1,80 @@
 #!/usr/bin/env bash
-set -eu
+set -e
 
 # Lists the current directory's files in Vim, so you can edit it and save to rename them
-# USAGE: vimv [file1 file2]
+# USAGE: virm [file1 file2]
 # If -a is passed as the first argument, hidden files become visible
 # https://github.com/dk949/vimv
 
-if [ "${1-""}" = "-a" ]; then
-    LS_FLAGS="-A"
+helptext() {
+    printf \
+"USAGE: virm [OPTION]... [FILE]...
+Open a list of filesin the current directory in \$EDITOR (or vi if not set).
+Files deleted from this list will be removed from disk.
+If files belong to a git repo, \`git rm\` will be used instead of \`rm\`
+
+  -a, --all         include files that start with . (except . and ..)
+  -f, --force       force remove files (equivalent to rm -f)
+  -r, --recursive   delete files recursively (equivalent to rm -r)
+  -d, --dry-run     do not remove any files, just print all remove commands that whould have been executed
+
+Exit status:
+  0 if OK,
+  1 if Error.
+
+"
+    exit 0
+}
+
+die(){
+    echo "$*"
+    exit 1
+}
+
+
+LS_FLAGS=
+RM_FLAGS=
+DRY_RUN=
+REMAINING=
+while [ -n "$1" ]; do
+
+    case "$1" in
+        -h|--help)
+            [ "$#" -ne 1 ] && die "-h does not take options and is incompatible with other flags"
+            helptext
+            ;;
+
+        -a|--all)
+            LS_FLAGS="$LS_FLAGS -A"
+            ;;
+
+        -f|--force)
+            RM_FLAGS="$RM_FLAGS -f"
+            ;;
+
+        -r|--recursive)
+            RM_FLAGS="$RM_FLAGS -r"
+            ;;
+        -d|--dry-run)
+            DRY_RUN=1
+            ;;
+        #*)
+            #REMAINING="$REMAINING $1"
+            #shift
+            #;;
+
+    esac
     shift
-else
-    LS_FLAGS=
-fi
+done
 
 declare -r FILENAMES_FILE=$(mktemp "${TMPDIR:-/tmp}/vimv.XXX")
 
 trap '{ rm -f "${FILENAMES_FILE}" ; }' EXIT
 
-if [ $# -ne 0 ]; then
-    src=( "$@" )
+if [ -n "$REMAINING" ]; then
+    src=( "$REMAINING" )
 else
-    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(ls $LS_FLAGS))'
+    IFS=$'\r\n' GLOBIGNORE='*' command eval  'src=($(eval "ls $LS_FLAGS"))'
 fi
 
 for ((i=0;i<${#src[@]};++i)); do
@@ -39,9 +93,9 @@ for ((i=0;i<${#src[@]};++i)); do
     if ! printf %s "${dest[@]}" | grep -Pq "${src[i]}"; then
 
         if git ls-files --error-unmatch "${src[i]}" > /dev/null 2>&1; then
-            actions+=("git rm ${src[i]}")
+            actions+=("git rm $RM_FLAGS ${src[i]}")
         else
-            actions+=("rm ${src[i]}")
+            actions+=("rm $RM_FLAGS ${src[i]}")
         fi
         ((++count))
     fi
@@ -55,7 +109,11 @@ fi
 
 
 for i in "${actions[@]}"; do
-    eval "$i"
+    if [ -n "$DRY_RUN" ]; then
+        echo "$i"
+    else
+        eval "$i"
+    fi
 done
 
 
