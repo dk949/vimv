@@ -58,10 +58,10 @@ while [ -n "$1" ]; do
         -d|--dry-run)
             DRY_RUN=1
             ;;
-        #*)
-            #REMAINING="$REMAINING $1"
-            #shift
-            #;;
+        *)
+            REMAINING="$REMAINING $1"
+            shift
+            ;;
 
     esac
     shift
