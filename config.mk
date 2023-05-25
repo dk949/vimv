@@ -1,1 +1,2 @@
-DESTDIR=~/.local
+DESTDIR ?= $(HOME)/.local
+PREFIX  ?=

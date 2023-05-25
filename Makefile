@@ -1,15 +1,18 @@
 include config.mk
+
+DIR=$(DESTDIR)$(PREFIX)/bin
+
 all:
 
 clean:
 
 install: all
-	mkdir -p ${DESTDIR}${PREFIX}/bin/
-	install vimv ${DESTDIR}${PREFIX}/bin/vimv
-	install virm ${DESTDIR}${PREFIX}/bin/virm
+	mkdir -p $(DIR)
+	install vimv $(DIR)/vimv
+	install virm $(DIR)/virm
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/vimv
-	rm -f ${DESTDIR}${PREFIX}/bin/virm
+	rm -f $(DIR)/vimv
+	rm -f $(DIR)/virm
 
 .PHONY: all clean install uninstall
